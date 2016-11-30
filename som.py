@@ -35,6 +35,12 @@ class SOM(Neuron):
 	def set_learningRate(self,value):
 		self.learningRate = value
 
+	def set_sigma(self,value):
+		self.sigma = value
+
+	def set_stop_criteria(self,value):
+		self.stopCriteria = value
+
 	def normalize(self, inputs):
 		inputs = inputs.astype('float')
 	        a,b = inputs.shape

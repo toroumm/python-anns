@@ -44,6 +44,7 @@ class GNG(Neuron):
         # self.img[::] = 255
         # self.video = 0
 
+
         self.neurons = []
         self.neurons_norm = 0
 
@@ -55,8 +56,12 @@ class GNG(Neuron):
         for ii in xrange(0, neuron_begin):
             for i in xrange(0, neuron_begin):
                 if (i != ii):
-                    neurons[ii].edge.append(neurons[i].id)
-                    neurons[ii].age.append(0)
+                     #self.neurons[ii].edge.append(self.neurons[i].id)
+                     #self.neurons[ii].age.append(0)
+                     neurons[ii].edge.append(neurons[i].id)
+                     neurons[ii].age.append(0)
+
+        self.training_set(database)
 
     def sava_adjacent_matrix(self, path_file):
         x = np.zeros((len(self.neurons), len(self.neurons)))
@@ -120,6 +125,7 @@ class GNG(Neuron):
                             neurons[z].edge.pop(neurons[z].edge.index(neurons[i].id))
 
                             neurons[i].age.pop(neurons[i].edge.index(neurons[z].id))
+
                             neurons[i].edge.pop(neurons[i].edge.index(neurons[z].id))
 
                             j = 0
@@ -130,6 +136,10 @@ class GNG(Neuron):
                 j += 1
 
     def remove_nodes(self, neurons):
+
+        if(len(neurons) <= 2):
+            return
+
         for i in xrange(0, len(neurons)):
             try:
                 if (len(neurons[i].edge) == 0):
@@ -194,6 +204,8 @@ class GNG(Neuron):
         self.neighborhood += 1
 
     def get_map_database(self, database):
+
+        database = self.normalize(database)
 
         hist = np.zeros((database.shape[0]))
 
@@ -332,8 +344,8 @@ class GNG(Neuron):
             for j in xrange(0, neurons.size):
                 soma += neurons[j].delta_weight
             total = soma / neurons.size
-            print "epoca", i, "lambda ", lambda_counter, "Neurons ", len(
-                self.neurons), " MSE", total, "Parada", stop_criteria
+            #print "epoca", i, "lambda ", lambda_counter, "Neurons ", len(
+             #   self.neurons), " MSE", total, "Parada", stop_criteria
 
             self.mse_curve.append(total)
 
@@ -370,17 +382,17 @@ class GNG(Neuron):
         for i in xrange(0, self.max_normalization.shape[0]):
             self.max_normalization[i] = np.max((inputs[:, i]), axis=0)
             self.min_normalization[i] = np.min((inputs[:, i]), axis=0)
-            if (self.min_normalization[i] > 0):
+            if (self.min_normalization[i] >= 0):
                 self.min_normalization[i] = 0
-
+            if(self.max_normalization[i] == 0):
+                self.max_normalization[i] = 1
         self.samples = self.normalize(inputs)
 
     def normalize(self, inputs):
-        '''
-		for i  in range(0, inputs.shape[1]):
-			inputs[:,i] -= self.min_normalization[i]
-			inputs[:,i]  /= (self.max_normalization[i]-self.min_normalization[i])
-		'''
+
+        for i  in xrange(0, inputs.shape[1]):
+            inputs[:,i] -= self.min_normalization[i]
+            inputs[:,i]  /= (self.max_normalization[i]-self.min_normalization[i])
         return inputs
 
     def save_gng(self, mlp, path_and_namefile):
@@ -439,6 +451,7 @@ def analise_gng(dataset, n_vezes, path):
         np.savetxt(path + 'map_gng_'+str(i), g.get_map_gng(dataset, out))
 
 
+'''
 path = '/home/jeferson/Dropbox/experimento_fmri/dados/163/'
 
 dataset = np.loadtxt(path + 'frmi_input_geral_a4.txt')
@@ -452,8 +465,7 @@ out = out[:, 0]
 path = '/home/jeferson/Dropbox/deep_learning/capitulos_mestrado/capitulos/resultados/'
 
 analise_gng(dataset,20,path+'analise_gng/04/')
-
-sys.exit(0)
+'''
 
 '''
 for i in xrange(2,8):
@@ -466,31 +478,46 @@ sys.exit()
 '''
 
 
-g = GNG(dataset)
+#g = GNG(dataset)
 
+#g.set_edge_age_max(20)
 
-g.set_edge_age_max(20)
+#g.set
 
-g.set
+#g.training_gng(300)
 
-g.training_gng(300)
+#g.save_gng(g, path + 'rede_02')
 
-g.save_gng(g, path + 'rede_02')
+'''
 
-g.sava_adjacent_matrix(path + 'mat_base_04')
+path = '/home/jeferson/Dropbox/experimento_fmri/dados/163/'
 
-np.savetxt(path + 'map_database', g.get_map_database(dataset))
+dataset = np.loadtxt(path + 'frmi_input_geral_a4.txt')
 
-np.savetxt(path + 'map_gng', g.get_map_gng(dataset, out))
+out = np.loadtxt(path + 'output_163.txt')
+
+out[out[:, 0] == 1] = 2
+out[out[:, 0] == 0] = 1
+out = out[:, 0]
+
+path_file = '/home/jeferson/Dropbox/deep_learning/capitulos_mestrado/bases_gng/base4/'
+
+g = GNG.load_gng(path_file+'rede_02.pk1')
+
+g.sava_adjacent_matrix(path + 'folds_4_mat_base_04')
+
+np.savetxt(path + 'folds_4_map_database', g.get_map_database(dataset))
+
+np.savetxt(path + 'folds_4_map_gng', g.get_map_gng(dataset, out))
 
 path_files = '/home/jeferson/Dropbox/folds_fmri_cocaina/'
 
-arquivo = 'base_4_fmri_teste_fold'
+arquivo = 'folds_4_base_4_fmri_teste_fold_'
 
-arquivo_out = 'base_4_fmri_teste_out_fold'
+arquivo_out = 'folds_4_base_4_fmri_teste_out_fold_'
 
 
-for i in xrange(0,10):
+for i in xrange(0,4):
 
     x = np.loadtxt(path_files+arquivo+str(i+1))
 
@@ -502,5 +529,8 @@ for i in xrange(0,10):
 
     y = y[:,0]
 
-    np.savetxt(path + 'mat_base_4_hist_'+str(i+1), g.get_map_gng(x,y))
+    np.savetxt(path_file + 'folds_4_mat_base_4_hist_treino_'+str(i+1), g.get_map_gng(x,y))
 
+    np.savetxt(path_file + 'folds_4_mat_base_4_hist_teste_' + str(i + 1), g.get_map_gng(x, y))
+
+'''

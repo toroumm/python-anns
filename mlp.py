@@ -367,7 +367,7 @@ class MLP(Layers):
 			if(self.min_normalization_out[i] > 0):
 				self.min_normalization_out[i] = 0
 				
-		self.samples, self.out = self.shuffle(self.samples, self.out )
+		self.samples, self.out = self.__shuffle(self.samples, self.out )
 
 	
 	'''
